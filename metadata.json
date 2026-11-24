@@ -1,0 +1,6 @@
+{
+  "name": "API Behavior Miner",
+  "description": "Security-assessment workspace for API behavior mining, safe URL discovery, and business-logic vulnerability testing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

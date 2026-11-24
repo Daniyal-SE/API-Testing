@@ -1,0 +1,823 @@
+FRONTEND-ONLY MASTER IMPLEMENTATION PROMPT
+API Behavior Miner & Business-Logic Vulnerability Tester
+Prompt type: Frontend design and implementation only
+Project: Final Year Project — Semester 7 (40%) + Semester 8 (60%)
+Authoritative requirement source: API_Behavior_Miner_Complete_Frontend_Specification.md and the SRS Version 4.0
+Frontend stack: React + TypeScript + Vite + Tailwind CSS
+Delivery boundary: Browser-side application only. Do not implement or modify the backend.
+1. ROLE, OBJECTIVE AND FRONTEND-ONLY BOUNDARY
+Act as a Principal Frontend Architect, Senior React/TypeScript Engineer, Product UI/UX Designer and Security UX Specialist.
+
+Your task is to design and implement the complete frontend application for API Behavior Miner & Business-Logic Vulnerability Tester. The result must be a polished, professional, responsive and fully navigable security-assessment workspace that follows the provided SRS and Frontend Specification.
+
+This task is strictly limited to the frontend. Your deliverable is the React application and its client-side code, styling, visual states, frontend tests and frontend documentation.
+1.1 What you are allowed to do
+- Inspect the existing repository to identify the frontend application, package manager, current dependencies, available API client and existing backend API documentation.
+- Create and modify files belonging to the frontend application.
+- Build routes, pages, layouts, navigation, forms, tables, charts, graph visualizations, drawers, dialogs, menus and reusable components.
+- Implement client-side validation, UI state management, loading states, error handling, filtering, sorting, pagination and responsive behavior.
+- Integrate with already-existing backend endpoints through a typed frontend API client, when their actual contracts are available.
+- Build a clearly isolated mock/demo data adapter only when backend endpoints or data are not yet available.
+- Write frontend unit, component and end-to-end tests.
+- Document frontend assumptions and missing API contracts without inventing backend behavior.
+1.2 What you must NOT do
+Do not implement, create or modify:
+- FastAPI/Python backend services or backend routes.
+- Pydantic request/response models on the server.
+- PostgreSQL schemas, SQLAlchemy models or Alembic migrations.
+- Redis, Python RQ queues or background worker processes.
+- Docker runner, Dockerfiles, Docker Compose services or network isolation.
+- OWASP ZAP, Schemathesis, HTTPX or crawler execution logic.
+- Authentication server logic, password hashing, session issuance or secret storage.
+- Scope enforcement, DNS/IP validation or target-side security testing.
+- Backend business rules, finding verification engines or benchmark calculation services.
+Do not turn this into a full-stack implementation task. The frontend may consume existing backend APIs, but it must not build those APIs. Do not change backend code simply to make a frontend screen appear functional.
+1.3 Product boundary
+The frontend is a presentation and user-control interface. It must never send assessment/crawling/security-test traffic directly from browser JavaScript to a target website or API. It sends user actions to the platform's existing control API. The backend and restricted runner remain authoritative for permissions, target authorization, scope validation, budgets, execution, cancellation and evidence verification.
+
+Postman may be used as inspiration for workspace organization, navigation, compact information layout and resource inspection. Do not clone Postman, its branding or its unrelated features. This is an academic FYP platform, not a commercial enterprise API product.
+2. REQUIRED FIRST STEPS
+Before writing code:
+1. Inspect the repository and identify the actual frontend root directory.
+2. Read API_Behavior_Miner_Complete_Frontend_Specification.md completely.
+3. Read the relevant portions of SRS Version 4.0, especially Chapters 2–6 and 8.
+4. Inspect package.json, the lockfile, Vite configuration, Tailwind configuration and existing source code.
+5. Inspect only the existing backend OpenAPI/schema documentation or frontend API contracts, if available. Do not modify or create backend endpoints.
+6. Identify which frontend pages/components already exist and preserve useful working code.
+7. Create a frontend implementation plan and a list of unresolved API-contract assumptions.
+Create these frontend documentation files if they do not already exist:
+- docs/FRONTEND_IMPLEMENTATION_PLAN.md
+- docs/FRONTEND_DECISIONS.md
+- docs/API_CONTRACT_GAPS.md
+- docs/FRONTEND_PROGRESS.md
+Do not stop after writing a plan. Continue with implementation unless a genuine repository or dependency blocker prevents it. Do not repeatedly ask the user questions for details that can safely be represented as documented frontend assumptions.
+2.1 Source-of-truth hierarchy
+Use this order when making frontend decisions:
+1. SRS Version 4.0 for product scope, roles, safety, business constraints and semester deliverables.
+2. API_Behavior_Miner_Complete_Frontend_Specification.md for page structure, screen content, navigation and frontend behavior.
+3. Existing backend API/OpenAPI contracts for real endpoint names, field names, enum values and payloads.
+4. Existing repository conventions and compatible official framework documentation for implementation details.
+Do not silently replace a requirement with a generic industry convention. When the SRS does not define a detail, record it as a frontend assumption or pending decision.
+3. PRODUCT GOAL AND USER EXPERIENCE
+Create a complete authenticated web workspace that allows authorized users to manage projects and targets, review authorization and scope information, configure and monitor assessment jobs, inspect discovered URL/API inventory, explore behavior dependencies, review business-invariant results, inspect redacted evidence and findings, and view reports and evaluation results.
+
+The overall experience should be:
+- Professional and credible for a university FYP demonstration.
+- Clear and calm rather than visually noisy.
+- Information-rich, but organized into understandable sections.
+- Consistent across lists, detail pages, forms and monitoring views.
+- Responsive and keyboard accessible.
+- Honest about missing data, unavailable backend features and incomplete assessments.
+- Designed around safe assessment workflows, not aggressive security-scanner aesthetics.
+Do not create an unnecessary public marketing website. The primary product experience is the authenticated workspace. A small sign-in entry screen is sufficient unless the repository already contains a required public landing page.
+4. SEMESTER-WISE FRONTEND COVERAGE
+The complete frontend architecture must cover 100% of the FYP. The initial build priority must follow Semester 7.
+4.1 Semester 7 — Internal Defense (40%)
+The supplied milestone image identifies these ten deliverables. Ensure the frontend has the corresponding screens and workflows:
+No.	Deliverable	Frontend contribution
+1	User Authentication	Login, optional registration according to approved mode, session-expired state, sign-out.
+2	Workspace & Project Management	Dashboard, project list/create/details, workspace context and role-aware navigation.
+3	Target Registration	Target list/form/details, Local Lab/Staging classification and authorization record presentation.
+4	Scope Configuration	Scope editor, normalized preview, exclusions, methods, budgets, versions and approval state.
+5	Assessment Job Management	Assessment wizard, runs list, status, progress, monitoring and cancellation request/confirmation.
+6	Safe Test Runner	Frontend readiness panel that displays backend-reported runner/worker/policy status; no runner implementation.
+7	URL Discovery	Discovery setup/summary, phase and bounded discovery counters.
+8	URL Inventory	Discovered pages/forms/routes, provenance, scope eligibility and test status.
+9	Basic Dashboard	Login/project/target context, run monitoring summary, metrics and activity.
+10	Audit Management Foundation	User actions, authorization changes and run history.
+
+
+Follow the image's week-wise progression: Weeks 1–2 development foundations; 3–4 literature/research; 5–6 requirements/SRS; 7–8 architecture, threat/data model and wireframes; 9–10 backend foundation (not part of this frontend task); 11–12 React dashboard/login/project/target forms; 13–14 authorization/scope/safe-runner integration UX; 15–16 URL discovery and inventory UX.
+4.2 Semester 8 — Final Defense (60%)
+Include the frontend modules needed for:
+- URL-based web security assessment and selected ZAP results.
+- OpenAPI JSON/YAML import and API inventory.
+- API contract/schema testing results.
+- Behavior dependency graph.
+- Test identity and authorization views.
+- Business-invariant definition and result views.
+- Evidence collection/review.
+- Vulnerability finding triage and audit history.
+- HTML/JSON report generation and export status.
+- Benchmark and evaluation metrics.
+- Optional AI Advisor (P3/stretch only, if approved and available).
+Semester 8 modules must be represented in the full application navigation and route architecture. Where the corresponding backend functionality is not available yet, show a truthful Planned for Semester 8, Backend unavailable or Demo mode state. Do not fake real assessment results.
+5. FRONTEND TECHNOLOGY AND CODE QUALITY
+The approved Semester 7 frontend stack is:
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+Use the repository's installed versions and lockfile. Do not upgrade major versions without a compatibility reason. Confirm whether the project uses Tailwind CSS v3 or v4 before changing its configuration; never combine incompatible configuration patterns.
+
+Supporting libraries may be used when useful and compatible:
+- React Router for route management.
+- TanStack Query for server-state caching and refetching.
+- React Hook Form and Zod for client form handling and schema validation.
+- @xyflow/react for the behavior dependency graph.
+- Lucide React for consistent icons.
+- Recharts or a compatible chart library for meaningful dashboard/evaluation charts.
+- Vitest and React Testing Library for frontend tests.
+- Playwright for end-to-end browser flows.
+Inspect installed dependencies before adding alternatives. Avoid duplicate libraries that solve the same problem. Use strict TypeScript and avoid unnecessary any types.
+5.1 Suggested frontend organization
+Adapt this to the existing repository rather than duplicating folders:
+src/
+  app/
+    App.tsx
+    router.tsx
+    providers.tsx
+  components/
+    ui/
+    layout/
+    data-display/
+    feedback/
+    security/
+  features/
+    auth/
+    dashboard/
+    workspaces/
+    projects/
+    targets/
+    scope/
+    assessments/
+    url-discovery/
+    url-inventory/
+    web-security/
+    api-contracts/
+    api-inventory/
+    contract-testing/
+    behavior-graph/
+    identities/
+    invariants/
+    evidence/
+    findings/
+    reports/
+    benchmarks/
+    audit/
+    settings/
+  hooks/
+  lib/
+    api-client.ts
+    query-client.ts
+    auth-session.ts
+    permissions.ts
+    formatters.ts
+    validators.ts
+  types/
+  styles/
+  main.tsx
+Separate feature-specific components from generic reusable UI. Avoid one giant App.tsx or one component containing every screen.
+6. VISUAL DESIGN SYSTEM
+6.1 Design direction
+Use a refined dark security-console theme as the default. The interface should look like a focused developer/security tool, with a restrained accent color and strong contrast.
+
+Suggested visual tokens (these are design recommendations, not new SRS business requirements):
+- App background: deep charcoal/navy rather than pure black.
+- Sidebar and primary surfaces: layered dark grey/navy.
+- Elevated surfaces: visually distinct cards, dropdowns and dialogs.
+- Primary accent: restrained teal or blue.
+- Success: muted green.
+- Warning/pending: amber.
+- Error/blocked: red.
+- Neutral/discovered/unknown: slate or grey.
+- Typography: readable sans-serif such as Inter or an equivalent already available.
+- Consistent spacing, control heights, border treatments, radii and typography scale.
+- Subtle transitions that do not delay user actions or safety feedback.
+Use labels and icons as well as colors. Never communicate a critical status using color alone.
+
+Avoid excessive gradients, neon glows, animated backgrounds, oversized marketing hero sections and decorative charts without data.
+6.2 Main application shell
+Top header
+Include:
+- Product mark and name: API Behavior Miner.
+- Workspace selector when multiple workspaces are available.
+- Current project context or breadcrumb context.
+- Global search for accessible resources when supported by available data/API.
+- Help/documentation shortcut.
+- Notification/activity entry only if a real data source exists.
+- User avatar and account menu with profile/settings/sign-out.
+Sidebar navigation
+Use a collapsible desktop sidebar and mobile/tablet drawer. Group links clearly:
+
+Overview
+- Dashboard.
+Workspace
+- Projects.
+- Members & Roles.
+Targets
+- Targets.
+- Add Target.
+- Authorization History.
+Assessments
+- Scope Configuration.
+- Scope Versions.
+- New Assessment.
+- Assessment Runs.
+- Run Monitoring.
+Discovery
+- URL Inventory.
+Web Security
+- URL Security Results.
+- ZAP Alerts.
+API
+- OpenAPI Contracts.
+- Import Contract.
+- API Operations.
+- Contract Testing.
+Behavior
+- Dependency Graph.
+Business Logic
+- Test Identities.
+- Invariants.
+- Invariant Runs.
+Results
+- Findings.
+- Evidence.
+- Reports.
+Research
+- Benchmarks.
+- Evaluation.
+Governance
+- Audit History.
+Account
+- Profile/Settings.
+- Sign Out.
+Only show actions/navigation that make sense for the current user's context, but remember that hiding a button is not authorization. Backend permissions remain authoritative. Mark unavailable Semester 8 areas as planned rather than presenting them as working.
+6.3 Page layout standard
+Every page should use a consistent structure:
+1. Breadcrumbs.
+2. Page title.
+3. One-sentence purpose/description.
+4. Primary action when permitted.
+5. Relevant filters, tabs or view controls.
+6. Main content area.
+7. Contextual help or next step when needed.
+Use tables for record-heavy views, cards for concise summaries, multi-step wizards for complex setup and side panels/detail pages for record inspection.
+7. REQUIRED ROUTES AND SCREENS
+Implement the following client-side routes, adapting names to existing route conventions:
+/login
+/register                         # only if registration mode is approved
+/forgot-password                  # only if recovery is supported
+/app/dashboard
+/app/projects
+/app/projects/new
+/app/projects/:projectId
+/app/projects/:projectId/members
+/app/targets
+/app/targets/new
+/app/targets/:targetId
+/app/targets/:targetId/authorization
+/app/targets/:targetId/scope
+/app/targets/:targetId/scope/versions
+/app/assessments/new
+/app/assessments
+/app/assessments/:runId
+/app/assessments/:runId/monitor
+/app/inventory/urls
+/app/inventory/urls/:urlId
+/app/security/url-findings
+/app/contracts
+/app/contracts/import
+/app/contracts/:contractId
+/app/api-operations
+/app/api-tests
+/app/api-tests/:runId
+/app/behavior-graph
+/app/identities
+/app/invariants
+/app/invariants/new
+/app/invariants/:invariantId
+/app/invariant-runs
+/app/findings
+/app/findings/:findingId
+/app/evidence/:evidenceId
+/app/reports
+/app/reports/:reportId
+/app/benchmarks
+/app/benchmarks/:benchmarkId
+/app/audit
+/app/settings
+Routes must have appropriate titles, active navigation, breadcrumb behavior, refresh/deep-link behavior and not-found states. Protected route guards support frontend navigation/UX only; the backend must still authorize all resources and actions.
+8. PAGE-BY-PAGE IMPLEMENTATION REQUIREMENTS
+8.1 Authentication
+Login
+Provide:
+- Email/username field.
+- Password field with show/hide control.
+- Accessible labels and inline validation.
+- Submit loading state and disabled state during submission.
+- Generic authentication failure message.
+- Registration/recovery links only if those backend workflows are enabled.
+- Session-expired and access-denied states.
+Use the existing session/authentication mechanism. Do not store passwords, access tokens, refresh tokens or session identifiers in localStorage or sessionStorage. Do not implement password hashing or session issuance in the frontend.
+Registration and recovery
+The SRS says the registration mode must be chosen before implementation. Keep self-registration/invitation-based registration configurable and document the pending decision. Only build the corresponding UI when the existing backend flow supports it. Account recovery is conditional on an existing recovery API.
+8.2 Dashboard
+Build an overview dashboard with:
+- Current workspace/project context.
+- Project/time-range filters.
+- Accessible project count.
+- Registered target count.
+- Assessment run count.
+- Active jobs count.
+- Finding severity/status distribution when available.
+- Targets awaiting authorization review when available.
+- Recent Assessment Runs table.
+- Recent audit activity.
+- Helpful setup panel for an empty workspace.
+Recent run table fields:
+- Run ID.
+- Project and target.
+- Environment.
+- State.
+- Start time/duration.
+- Modules executed.
+- Finding/observation count.
+- Open-details action.
+Every displayed metric must come from permission-filtered data. Charts should display their time range and filters. Do not use hard-coded demo metrics outside clearly labelled mock mode. Zero findings must never be described as proof that a target is secure.
+8.3 Workspace and Projects
+Project list
+Show project name, description, owner, target count, latest run, last-updated time and the current user's role where available. Include search, sort and filters. Offer Create Project only to eligible users.
+Create/edit project
+Include project name, description and authorized workspace association. Validate required fields, show field-level errors and provide a clear success/error state. Do not treat client-supplied workspace IDs or role labels as proof of permission.
+Project detail
+Use clear tabs:
+- Overview.
+- Targets.
+- Assessment Runs.
+- Members & Roles.
+- Audit History.
+Show ownership, project metadata, environment/target summary and recent activity where available.
+Role-aware UI
+Use the SRS roles:
+- Project Owner.
+- Security Tester.
+- Supervisor/Evaluator.
+- Optional System Administrator.
+The UI should reflect least-privilege responsibilities. A tester cannot expand owner-approved scope. An evaluator may review evidence but cannot authorize a target solely by being an evaluator. An administrator cannot silently grant target authorization or override project scope. Confirm actual permission flags against the backend contract; do not invent a complete RBAC matrix if the API has not defined it.
+8.4 Targets and Authorization
+Target list
+Show target name/base URL, project, environment (Local Lab/Staging), authorization status, current scope version, latest run and last authorization review.
+Add/edit target
+Fields:
+- Display name.
+- Base URL.
+- Environment classification.
+- Description.
+- Project association.
+- Ownership declaration or written permission reference.
+Show URL normalization feedback only when supported by backend response/contract. Clearly explain that target registration is not equivalent to authorization.
+Authorization detail/history
+Show declaration/permission reference, declaring user, timestamp, target/environment, current scope version, approval state and chronological changes where available.
+
+Use readable states such as Registered, Pending Review, Authorized, Expired, Revoked and Needs Revalidation only where they map to backend enums. Never let a checkbox alone display a target as authorized. A target with missing, pending, expired or revoked authorization must show an explicit blocked state for assessment launch.
+8.5 Scope Configuration
+Create a structured scope editor with sections:
+1. Target boundary: allowed hosts, ports and path prefixes.
+2. Exclusions: excluded paths/patterns and redirect rules where supported.
+3. HTTP methods: safe/read-only defaults; state-changing methods omitted/disabled by default.
+4. Network policy summary: private/loopback/link-local restrictions and Local Lab exception state.
+5. Budgets: crawl depth, request count, per-host rate, concurrency and wall-clock duration.
+6. Normalized scope preview.
+7. Validation feedback.
+8. Scope version history and approval state.
+Material changes must be represented as a new scope version when the backend supports versioning. A new version may require renewed approval. Historical run snapshots must remain visibly associated with the version actually used.
+
+The SRS's initial numeric budgets are provisional until confirmed. Do not hard-code sample values as permanent or claim that frontend validation enforces actual network scope. The backend/runner remains authoritative.
+8.6 Assessment Wizard and Preflight
+Build a multi-step assessment setup flow:
+1. Select project and target.
+2. Confirm target authorization state.
+3. Select available assessment modules.
+4. Select approved scope version.
+5. Review permitted budgets.
+6. Select permitted test identities where applicable (Semester 8).
+7. Review state-changing actions and approvals where applicable.
+8. Show preflight summary and blockers.
+9. Submit launch request to the existing backend API.
+Preflight UI should show blockers for missing authorization, missing approved scope, invalid configuration, unavailable required capability and missing state-change approval/reset information where supplied by backend. Each blocker should explain what needs attention and link to the relevant page.
+
+Do not implement preflight policy logic as a replacement for the backend. Treat the backend preflight response as authoritative.
+8.7 Safe Test Runner Readiness
+The Semester 7 deliverables explicitly include a Safe Test Runner. This is not a browser-side runner feature. Build a UI panel that displays backend-reported readiness information only, such as:
+- Runner/controller availability.
+- Required worker/queue status.
+- Scope validation outcome.
+- DNS/host-policy validation outcome.
+- Budget validation outcome.
+- Local Lab exception state when applicable.
+- Last reported health-check time.
+- Human-readable blocker/diagnostic.
+Do not expose Docker socket details, secret values, privileged runner controls or unfiltered infrastructure logs. Never display “Ready” based only on a frontend guess.
+8.8 Assessment Runs and Monitoring
+Runs list
+Columns: Run ID, project/target, environment, modules, scope version, state, start/completion time, duration, request/URL/operation counters where returned and finding count.
+
+Filters: project, target, state, module and date range, according to available API support.
+Run monitoring
+Show:
+- Run ID and target.
+- Environment and scope version.
+- State and current phase.
+- Start time and elapsed duration.
+- Request count / authorized budget.
+- URL/operation/case counts where relevant.
+- Phase timeline.
+- Progress only when backend supplies meaningful progress; otherwise use indeterminate progress with phase text.
+- Sanitized activity/log events.
+- Tabs for Overview, Activity, Discovered Assets, Findings/Observations, Evidence Summary and Run Configuration.
+Use WebSocket telemetry only if the backend exposes it; otherwise use the documented polling/API refresh mechanism. Browser refresh/reconnect must not erase persisted run state.
+Cancellation interaction
+1. User selects Cancel.
+2. Show a confirmation dialog with run context.
+3. Submit cancellation request to the existing API.
+4. Show “Cancellation requested”.
+5. Wait for backend confirmation.
+6. Render the confirmed terminal/partial state and retained summary.
+Do not claim that a run has stopped before backend confirmation. Keep Pending/Queued, Running, Cancellation Requested, Cancelled/Stopped, Completed, Partial, Failed and Interrupted/Needs Reconciliation distinguishable when the actual API supports them. Map real backend enums rather than inventing them.
+8.9 URL Discovery and URL Inventory — Semester 7
+Discovery summary
+Show target/base URL, scope version, crawl depth/request budget, current status/phase, start time/duration, discovered/in-scope/excluded/duplicate counts where supplied, and warnings for blocked out-of-scope redirects.
+URL inventory
+Columns:
+- URL/path.
+- HTTP method when known.
+- Asset type (page, route, form or other API-supported type).
+- Source/provenance (crawler/link/form/sitemap/OpenAPI or actual recorded source).
+- Host.
+- Scope status.
+- Discovery/test status.
+- Last seen/tested timestamp.
+- Details action.
+Include search, filters for host/path/method/source/scope/test status and pagination/bounded result windows.
+URL detail
+Show normalized URL/path, parameters/forms when collected, source/provenance, first/last discovered timestamps, scope eligibility and reason, related run and associated alerts/findings when available.
+
+A discovered URL is not automatically approved for active testing. Clearly distinguish discovery from test eligibility.
+8.10 URL-Based Security Results / ZAP — Semester 8
+Provide a view for selected low-impact web security assessment results. Show target and approved scope context, passive checks, approved check profile, alert category/title, affected URL, severity/confidence as supplied, tool/version, evidence availability and review state.
+
+Keep raw scanner alerts, candidate observations and verified findings visually separate. Active checks must not be shown as generally available when the backend/policy does not authorize them. Do not invent results.
+8.11 OpenAPI Contracts and Import — Semester 8
+Contracts list
+Show contract name, source filename, OpenAPI version, project/target association, import date, operation count, status and warnings.
+Import page
+- Accept the file types actually supported by the backend (SRS specifies JSON and YAML).
+- Show the actual size limit from API/configuration where available.
+- Display upload progress.
+- Display parser errors and unsupported constructs clearly.
+- Display partial-import warnings rather than silently hiding issues.
+- Show detected specification version and import summary.
+- Do not fetch remote references automatically unless the existing backend explicitly supports a safe policy.
+Contract detail
+Show normalized paths, methods, operations, parameters, request/response schemas, security schemes and parser/import warnings only when returned by the backend.
+8.12 API Operations and Contract Testing — Semester 8
+Operations inventory
+Use a filterable table containing method, path, operation ID, tags, authentication/security scheme, parameter/schema availability, source contract, scope eligibility and test status.
+
+Filters may include contract, method, path/tag, authentication, scope eligibility and test status.
+Contract test setup/results
+Show supported test categories: positive, negative, type and boundary. Show operation selection, allowed limits, permitted identity reference and reproducibility seed/settings when supported. State-changing operations remain disabled unless a distinct approved policy is returned by backend.
+
+Result rows should show operation, case category, redacted request summary, response status, schema result, duration and outcome. Detail views show expected/observed result and redacted indication. Distinguish parser errors, unsupported constructs and test failures.
+8.13 Behavior Dependency Graph — Semester 8
+Use @xyflow/react if compatible with the existing dependency set.
+
+Graph requirements:
+- Nodes represent API operations/resources.
+- Directed edges represent producer/consumer relationships.
+- Pan, zoom, fit-to-view and search/filter.
+- Clear node/edge labels.
+- Selected node/edge detail panel.
+- Legend and accessible status descriptions.
+Show provenance/review categories that match API data, such as Documented, Observed/Gathered, Inferred/Schema-derived, Approved and Rejected. Show confidence, rationale, evidence and reviewer information if available.
+
+Inferred edges must look different from observed/documented edges. An edge or its approval must never be presented as authorization to execute a sequence. Execution still requires an approved run plan, target authorization, scope and relevant safety approvals.
+
+Optimize large graphs with memoized custom nodes/edges and stable callbacks. The SRS's temporary usability target is a graph around 150 operation nodes and 300 edges; validate performance on the declared demo machine rather than promising a fixed result.
+8.14 Test Identities — Semester 8
+List identity label, role/profile, project/target association, enabled state, secret-reference status and last update where available.
+
+The UI should configure synthetic identity references, not reveal raw credentials. Show clear warnings that real customer identities and secrets must not be entered into ordinary UI notes or logs.
+8.15 Business Invariants — Semester 8
+Build an invariant library, create/edit form and result views. The editor should support fields for:
+- Name and description.
+- Invariant family.
+- Target/environment.
+- Actor/test identity labels.
+- Preconditions/initial state.
+- Authorized operation sequence.
+- Expected business rule/oracle.
+- Maximum execution count/budget where exposed.
+- State-changing approval state.
+- Disposable fixture/reset procedure.
+- Version and owner-review state.
+The first three SRS families are:
+1. Object ownership / BOLA.
+2. Workflow-order testing.
+3. One-time-use and replay testing.
+Quota/usage restrictions may be shown when supported. Missing oracle means the result must remain unverified/needs-review or blocked according to backend response. Failed reset must not be displayed as a successful test. Do not invent business rules or automatically execute an AI suggestion.
+8.16 Evidence Explorer — Semester 8
+Evidence list fields may include evidence ID, related run/finding/invariant, target, operation/URL, timestamp, source, evidence type and redaction status.
+
+Detail sections:
+- Summary and provenance.
+- Redacted request summary.
+- Response status and bounded text excerpt.
+- Expected versus observed result.
+- Preconditions and identity label.
+- Scope/run snapshot.
+- Reproduction guidance.
+- Stable evidence identifier/hash where available.
+Render target-controlled content as safe text. Never inject untrusted HTML from a response into the page. Keep large bodies bounded and request details only when the user opens the relevant evidence record.
+8.17 Findings and Triage — Semester 8
+Findings list
+Show title/category, severity, confidence, status, project/target, affected URL/operation, rule/invariant reference, first observed/updated dates and run ID.
+Finding details
+Show description, category, severity/confidence, review state, impacted asset, rule reference, expected/observed result, redacted proof, reproduction steps, run/scope/tool provenance, remediation notes, reviewer rationale and audit timeline where available.
+
+Keep raw alerts, candidate observations, validated findings, needs-review, false-positive and fixed states distinct. Use backend canonical status values. A finding should not become fixed solely because a user clicked a button; reflect the backend's regression/exception workflow.
+8.18 Reports and Export — Semester 8
+Support the two report formats specified in the SRS: HTML and JSON.
+
+Show project/target, run, scope version, assessment date, tool versions, module coverage, findings, severity/confidence, redacted evidence summaries, limitations, reproduction guidance and remediation notes where returned.
+
+Display the real export lifecycle: Queued, Generating, Ready or Failed only when the backend supports these states. Partial/cancelled runs must be labelled partial. Never expose secrets, tokens, raw cookies or passwords in export previews.
+8.19 Benchmarks and Evaluation — Semester 8
+Provide benchmark list/detail and evaluation-result screens. Show benchmark name/version, fixture/target identity, ground-truth status, reset protocol, evaluation date and available comparison runs.
+
+Display only metrics actually returned/calculated by the backend, including:
+- Precision.
+- Recall.
+- False-positive rate.
+- Coverage.
+- Reproducibility.
+- Time-to-triage.
+- Baseline comparison.
+Every chart/table must show the metric definition, sample count/denominator, benchmark version and evaluation date when available. Do not generalize small academic lab results to all production systems.
+8.20 Optional AI Advisor — P3 / Stretch
+Include only if approved and supported. Show candidate invariant, actor/preconditions/action/oracle, rationale, source context and model/version where available. Provide Accept/Edit/Reject only if the backend supports the human-review workflow.
+
+Clearly label AI output as a suggestion. It cannot launch tests, change scope, access secrets or override deterministic finding verdicts. Core frontend workflows must remain usable when AI is disabled.
+8.21 Audit History
+Show actor, timestamp, action, resource type/ID, project/target, outcome and correlation/run reference when available. Add filters for date, actor, project, target, action and outcome where supported.
+
+Semester 7 requires the audit foundation for user actions, authorization changes and run history. Semester 8 extends this UX to invariant approvals, finding reviews, exports and benchmark-related events when returned by the backend.
+8.22 Settings and Optional Admin Status
+Keep profile/settings minimal: display information, workspace membership, role, theme preference if implemented and sign-out. An optional admin-only status view may display backend-reported system/worker health. It must not provide a way to approve target authorization, modify security policy or override scope.
+9. REUSABLE COMPONENTS
+Create a consistent component library. Build only components needed by the actual screens, but include reusable patterns such as:
+- AppShell, AppHeader, AppSidebar, WorkspaceSwitcher.
+- Breadcrumbs, PageHeader, PageActions.
+- StatusBadge, SeverityBadge, ConfidenceLabel.
+- MetricCard, ChartPanel, DataTable, FilterToolbar, Pagination.
+- FormField, FormSection, InlineValidation, FileDropzone.
+- ConfirmDialog, SideDrawer, Tabs, DropdownMenu, Tooltip.
+- EmptyState, LoadingSkeleton, ErrorState, ForbiddenState, RetryPanel.
+- ScopeSummary, ScopeVersionBadge, PreflightChecklist.
+- RunnerReadinessPanel, RunStateTimeline, ProgressPanel, SanitizedEventLog.
+- InventoryDetailPanel, GraphCanvas, GraphDetailPanel.
+- EvidenceViewer, FindingReviewPanel, AuditTimeline, ExportDialog.
+Keep spacing, typography, status presentation and interaction patterns consistent across screens. Do not create decorative or inert buttons. Every visible interactive control must have a real action or be visibly disabled with a reason.
+10. FRONTEND API INTEGRATION — CONSUME, DO NOT BUILD
+This is a frontend-only task. Use existing API definitions if present. Do not create new backend endpoints or edit server-side code.
+10.1 Centralized API layer
+Create or reuse one frontend API client. It should centralize:
+- Base URL/configuration.
+- Existing authentication/session behavior.
+- Typed request/response interfaces.
+- Standard error normalization.
+- Request cancellation where useful.
+- Correlation/request IDs when required by the existing contract.
+- Query invalidation/refetch behavior.
+Generate or verify TypeScript types from existing OpenAPI contracts when possible. Preserve actual backend field names and enum values. Do not guess endpoint names, request bodies or status enums when a contract is available.
+10.2 When backend contracts are missing
+Create frontend-only interfaces/adapters and document the unknown fields/endpoints in docs/API_CONTRACT_GAPS.md. Use a clearly isolated mock adapter for UI development. Do not claim that an assumed endpoint exists.
+10.3 Mock/demo mode
+- Keep mock data isolated from production API logic.
+- Show a persistent but subtle DEMO DATA or MOCK MODE label wherever mock records are presented.
+- Never mix mock records with live backend data.
+- Use deterministic fixtures suitable for screenshots and tests.
+- Provide loading, empty, success, error, blocked, forbidden, partial and unknown states.
+- Never present a mock scan as an actual security assessment.
+10.4 State management
+Separate server state, local UI state and authenticated session context. Use query caching for server state when appropriate. Do not put passwords, access tokens, refresh tokens, cookies or target credentials into browser storage.
+
+Map canonical status enums centrally. Preserve the original backend value and provide a safe Unknown fallback for unrecognized values. Never map an unknown state to Success.
+11. SAFETY AND SECURITY UX REQUIREMENTS
+These rules are mandatory for the frontend:
+1. Never send assessment/crawling/security-test traffic directly from the browser to the target.
+2. Backend authorization is authoritative.
+3. Target registration and target authorization are different states.
+4. Display target, environment and scope version before launch.
+5. A discovered URL does not automatically become eligible for active testing.
+6. Passive/read-only behavior is the default presentation.
+7. State-changing operations need explicit approval and disposable/resettable test state where applicable.
+8. Do not expose denial-of-service, brute-force, destructive or persistence-oriented options.
+9. Cancellation requested is not the same as cancellation confirmed.
+10. Do not invent progress percentages, run completion or successful outcomes.
+11. Do not store secrets/tokens in local/session storage.
+12. Treat API responses, crawler output, filenames and target-controlled strings as untrusted.
+13. Render untrusted content as text; sanitize any allowed formatted preview.
+14. Bound evidence/log previews and do not load huge response bodies into list pages.
+15. Respect project/workspace permissions in every UI query and detail view.
+16. Zero findings is not proof of target security.
+17. AI suggestions cannot authorize execution or override deterministic results.
+18. Never expose privileged runner or Docker control details in the user-facing UI.
+The frontend communicates status and collects user intent. It does not replace backend policy enforcement.
+12. ASYNC STATES, ACCESSIBILITY AND RESPONSIVENESS
+12.1 Async UI states
+Every asynchronous page/form/query must handle the states relevant to that interaction:
+- Initial loading.
+- Refresh/background fetching.
+- Empty result.
+- Validation error.
+- API/network error.
+- Access denied.
+- Not found.
+- Pending mutation.
+- Success after confirmed backend response.
+- Partial result.
+- Offline/reconnecting/stale data where relevant.
+- Unknown status.
+Do not display success before the server confirms the operation. Preserve user-entered form state on recoverable errors where appropriate.
+12.2 Accessibility
+Aim for WCAG 2.2 AA quality:
+- Semantic landmarks and heading hierarchy.
+- Real labels for inputs.
+- Keyboard-accessible navigation, dropdowns, tabs and dialogs.
+- Visible focus indicators.
+- Correct focus handling for dialogs/drawers.
+- Error messages associated with the relevant fields.
+- Async status announced accessibly where appropriate.
+- Adequate text/control contrast.
+- Reduced-motion support.
+- Do not rely on color alone.
+12.3 Responsive behavior
+The SRS's initial target is modern desktop browsers. Prioritize desktop because data tables and dependency graphs need space, but implement usable tablet/mobile layouts:
+- Wide desktop: full sidebar, header, tables, graph canvas and side panel.
+- Laptop: collapsible sidebar and compact tables.
+- Tablet: drawer navigation and stacked forms.
+- Mobile: readable monitoring, finding and dashboard summaries; complex scope/graph editing can display an honest desktop-recommended notice rather than broken controls.
+13. FRONTEND PERFORMANCE EXPECTATIONS
+Use the SRS's provisional targets as measured engineering goals, not guaranteed claims:
+- Dashboard initial view: provisional target around 2 seconds in the defined local demo profile.
+- Dashboard reads: provisional P95 target of 3 seconds under the SRS reference workload.
+- Client-side workspace navigation: provisional target around 300 ms.
+- Inventory and findings lists: pagination/bounded result windows.
+- Charts: use backend aggregates for large data sets and display filter/time range.
+- Behavior graph: assess usability around 150 operation nodes and 300 edges.
+Use route-level code splitting where helpful, memoize expensive graph elements, avoid unnecessary re-renders and lazy-load large details. Do not load full request/response bodies into tables. Measure on the declared demo hardware before reporting performance.
+14. REQUIRED END-TO-END FRONTEND FLOWS
+Implement and test the following flows against the existing API or the isolated mock adapter.
+Flow A — First project setup
+Login → Dashboard → Create Project → Project Details → Add Target → Authorization Declaration → Configure Scope → Save Scope Version → Display Approval State.
+
+The frontend must not claim the target is authorized until the backend returns that state.
+Flow B — Semester 7 URL discovery
+Dashboard → Project → Target → Review Authorization and Scope → New Assessment → Select URL Discovery → Review Budgets → Preflight → Submit Run → Monitoring → URL Inventory → Inspect Provenance → Audit History.
+Flow C — Cancellation
+Run Monitoring → Cancel → Confirmation → Cancellation Requested → Wait for backend response → Confirmed terminal/partial state → Review retained summary/evidence.
+Flow D — Semester 8 API/business-logic workflow
+Import OpenAPI → Review Warnings → API Inventory → Contract Testing → Behavior Graph → Test Identity Setup → Invariant Definition → Owner Approval State → Invariant Run → Evidence → Finding Review → Report → Benchmark Results.
+
+Where a backend module is unavailable, show a labelled planned/demo state rather than faking a successful operation.
+Flow E — Finding review
+Findings → Open Finding → Inspect Provenance → Inspect Redacted Evidence → Review Expected/Observed Result → Permitted Replay action if available → Change Review State → Add Rationale → View Audit History.
+15. FRONTEND TESTING REQUIREMENTS
+Use the test tools already present in the repository where possible. Add tools only when necessary and compatible.
+15.1 Component tests
+Test:
+- Form validation and accessible error messages.
+- Status and severity badges.
+- Tables, filters and pagination.
+- Dialog keyboard/focus behavior.
+- Route guards and forbidden states.
+- Loading/empty/error/partial states.
+- Safe rendering of untrusted target/evidence strings.
+- Cancellation-requested versus confirmed-cancelled presentation.
+15.2 Feature tests
+Cover:
+- Login/session UX.
+- Project list/create/detail.
+- Target registration and authorization display.
+- Scope form/version state.
+- Assessment wizard and preflight blockers.
+- Run monitoring and cancellation state transitions.
+- URL inventory filtering/details.
+- OpenAPI upload UI and parser response presentation.
+- Dependency graph rendering and edge details.
+- Invariant editor and approval state.
+- Evidence/finding detail and triage.
+- Report export lifecycle.
+15.3 Browser/end-to-end tests
+At minimum:
+1. Login → create project → register target.
+2. Unapproved target → launch action is blocked by returned backend state.
+3. Authorized target → submit assessment request and open returned run ID.
+4. Refresh run page → state is recovered from the data source.
+5. Cancel run → pending state appears before confirmed state.
+6. URL discovery → inventory list and provenance details.
+7. OpenAPI import → display returned inventory/warnings.
+8. Invariant result → evidence review.
+9. Finding status update → audit entry presentation.
+10. Report export → safe report status and no secret leakage in rendered UI.
+Tests must use synthetic fixtures and mock API responses where a real test backend is unavailable. Do not run tests against an unapproved external target.
+16. IMPLEMENTATION SEQUENCE
+Stage 1 — Inspect and plan
+- Inspect frontend repository and current dependencies.
+- Read the complete frontend specification and SRS requirements.
+- Identify existing API contracts and unresolved dependencies.
+- Write the four frontend documentation files listed in Section 2.
+Stage 2 — Foundation and design system
+- Establish/verify Vite + React + TypeScript setup.
+- Confirm Tailwind version/configuration.
+- Build design tokens, app shell, header, sidebar and responsive layout.
+- Implement routing, common feedback states and reusable components.
+- Add the frontend API client boundary or mock adapter without creating backend routes.
+Stage 3 — Semester 7 screens
+Implement in dependency order:
+1. Authentication UI.
+2. Dashboard.
+3. Projects/workspaces.
+4. Targets and authorization.
+5. Scope configuration and versions.
+6. Assessment wizard/preflight.
+7. Runs list and monitoring/cancellation UI.
+8. Safe runner readiness summary.
+9. URL discovery and URL inventory.
+10. Audit foundation.
+Test each feature before proceeding.
+Stage 4 — Semester 8 screens
+Implement:
+1. URL security/ZAP results.
+2. OpenAPI contracts/import.
+3. API operations inventory.
+4. Contract/schema testing views.
+5. Behavior dependency graph.
+6. Test identities.
+7. Business invariants and run results.
+8. Evidence explorer.
+9. Findings and triage.
+10. Reports and export.
+11. Benchmarks/evaluation.
+12. Optional AI Advisor if approved.
+Stage 5 — Integration and quality pass
+- Verify every route and navigation item.
+- Verify every visible button/control has an action or a meaningful disabled state.
+- Check form validation, loading, empty, error, forbidden and partial states.
+- Check role-aware presentation.
+- Check responsiveness and keyboard navigation.
+- Check no target traffic or secret handling exists in the browser.
+- Run frontend tests, lint, typecheck and production build.
+- Fix errors or report unavoidable blockers accurately.
+- Update docs/FRONTEND_PROGRESS.md with real status.
+17. REQUIRED FRONTEND DELIVERABLES
+Deliver only frontend-related artifacts:
+1. Working React/TypeScript/Vite/Tailwind frontend application.
+2. Complete in-scope routes and page layouts for Semester 7 and Semester 8.
+3. Reusable design system and UI component library.
+4. Frontend API client that consumes existing backend contracts, if available.
+5. Clearly isolated mock/demo adapter if backend contracts or data are unavailable.
+6. Typed frontend data interfaces and status mappings.
+7. Responsive layouts and accessibility-conscious interactions.
+8. Frontend component/feature/end-to-end tests.
+9. Frontend setup/run/build/test instructions in README or frontend README.
+10. Frontend implementation plan, decisions, API-contract gaps and progress documents.
+Do not deliver backend services, database migrations, Redis jobs, Docker runner logic or new backend endpoints as part of this task.
+18. FINAL ACCEPTANCE CHECKLIST
+The frontend is acceptable only when:
+- The React + TypeScript + Vite + Tailwind stack is used consistently with the existing repository.
+- The app has a professional, coherent and responsive workspace shell.
+- Semester 7's ten deliverables are represented in working frontend workflows.
+- Semester 8 modules are included in the full frontend navigation/architecture with truthful availability states.
+- Authentication, project, target and authorization UX are present.
+- Scope configuration/version presentation is present.
+- Assessment creation, run monitoring and cancellation UX are present.
+- Safe runner readiness is presented from backend status only.
+- URL discovery and inventory screens are present.
+- API import/testing, graph, identity and invariant screens are present for full FYP coverage.
+- Evidence, findings, reports, benchmarks and audit screens are present.
+- Loading, empty, validation, error, forbidden, partial and unknown states are handled.
+- No frontend code sends scanning traffic directly to a target.
+- No passwords, tokens or target credentials are put in local/session storage.
+- No fake security claims, fabricated live metrics or false progress are shown.
+- Target-controlled data is rendered safely.
+- All visible actions work or show why they are disabled.
+- Frontend tests, lint, typecheck and production build pass, or any blocker is documented truthfully.
+- No backend/database/worker/runner implementation has been added or modified as part of this task.
+19. FINAL EXECUTION INSTRUCTION
+Build a complete, professional and advanced frontend only for API Behavior Miner & Business-Logic Vulnerability Tester.
+
+Start by inspecting the existing frontend repository and the provided requirements. Preserve working code. Implement the app shell and design system first, then complete Semester 7 workflows, followed by the Semester 8 UI modules. Use the existing backend API contracts if available; otherwise use a clearly labelled, isolated mock adapter and document the gaps.
+
+Do not drift into backend or infrastructure development. Do not merely produce screenshots or static decorative pages. Implement real frontend routes, interactions, validation, states, responsive layouts and tests.
+
+At the end, provide a concise implementation report with:
+- Pages completed.
+- Pages partially completed or unavailable due to backend dependencies.
+- Frontend/API assumptions.
+- Tests, lint, typecheck and build results.
+- Any remaining frontend blockers.
+Be accurate: a screen is not complete merely because it looks attractive. It is complete when its required content, states, interactions and data boundaries work as specified.
