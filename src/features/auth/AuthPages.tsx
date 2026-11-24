@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useAppSession } from '@/src/app/providers';
 import { DemoBanner } from '@/src/components/feedback/FeedbackStates';
@@ -8,15 +8,19 @@ import { isDemoMode } from '@/src/lib/api-client';
 import { loginSchema } from '@/src/lib/validators';
 
 export function LoginPage() {
-  const { login, sessionExpired, capabilities } = useAppSession();
+  const { user, login, sessionExpired, capabilities } = useAppSession();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('owner@fyp-lab.edu');
-  const [password, setPassword] = useState('fyp-demo-pass');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [authError, setAuthError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  if (user) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

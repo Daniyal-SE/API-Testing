@@ -103,6 +103,40 @@ const DEMO_USERS: Record<string, UserProfile> = {
   },
 };
 
+const SESSION_STORAGE_KEY = 'api_miner_session_user';
+
+function getStoredUser(): UserProfile | null {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as UserProfile;
+        if (parsed && parsed.email) {
+          const matched = DEMO_USERS[parsed.email.toLowerCase()];
+          return matched || parsed;
+        }
+      }
+    }
+  } catch {
+    // Ignore storage parse error
+  }
+  return null;
+}
+
+function setStoredUser(user: UserProfile | null): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      if (user) {
+        window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
+      } else {
+        window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      }
+    }
+  } catch {
+    // Ignore storage write error
+  }
+}
+
 function createInitialState(): MockState {
   const scopes: ScopeVersion[] = [
     {
@@ -1549,7 +1583,7 @@ function createInitialState(): MockState {
   ];
 
   return {
-    currentUser: DEMO_USERS['owner@fyp-lab.edu'],
+    currentUser: getStoredUser(),
     sessionExpired: false,
     capabilities: {
       registrationMode: 'invite_only',
@@ -1757,6 +1791,7 @@ export const mockAdapter = {
       throw new Error('Invalid credentials.');
     }
     state.sessionExpired = false;
+    setStoredUser(state.currentUser);
     appendAudit({
       actorEmail: state.currentUser.email,
       actorRole: state.currentUser.role,
@@ -1777,12 +1812,14 @@ export const mockAdapter = {
     } else if (state.currentUser) {
       state.currentUser = { ...state.currentUser, role };
     }
+    setStoredUser(state.currentUser);
     return state.currentUser;
   },
 
   async simulateSessionExpired() {
     state.currentUser = null;
     state.sessionExpired = true;
+    setStoredUser(null);
   },
 
   async logout() {
@@ -1800,6 +1837,7 @@ export const mockAdapter = {
     }
     state.currentUser = null;
     state.sessionExpired = false;
+    setStoredUser(null);
   },
 
   async getProjects(workspaceId?: string) {
