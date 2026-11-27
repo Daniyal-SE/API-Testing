@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   Activity,
   BarChart3,
@@ -34,7 +35,7 @@ import {
 import { useAppSession } from '@/src/app/providers';
 import { DemoBanner } from '@/src/components/feedback/FeedbackStates';
 import { SideDrawer } from '@/src/components/ui/Primitives';
-import { isDemoMode } from '@/src/lib/api-client';
+import { apiClient, isDemoMode } from '@/src/lib/api-client';
 import { formatRoleLabel } from '@/src/lib/status-mappers';
 
 interface NavGroup {
@@ -42,36 +43,65 @@ interface NavGroup {
   items: { label: string; to: string; icon: React.ReactNode; badge?: string }[];
 }
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    heading: 'Overview',
-    items: [{ label: 'Dashboard', to: '/app/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> }],
-  },
-  {
-    heading: 'Workspace',
-    items: [
-      { label: 'Projects', to: '/app/projects', icon: <FolderKanban className="h-4 w-4" /> },
-      { label: 'Members & Roles', to: '/app/projects/proj-commerce/members', icon: <Users className="h-4 w-4" /> },
-    ],
-  },
-  {
-    heading: 'Targets',
-    items: [
-      { label: 'Targets', to: '/app/targets', icon: <Target className="h-4 w-4" /> },
-      { label: 'Add Target', to: '/app/targets/new', icon: <PlusCircle className="h-4 w-4" /> },
-      { label: 'Authorization History', to: '/app/targets/tgt-1/authorization', icon: <ShieldCheck className="h-4 w-4" /> },
-    ],
-  },
-  {
-    heading: 'Assessments',
-    items: [
-      { label: 'Scope Configuration', to: '/app/targets/tgt-1/scope', icon: <Shield className="h-4 w-4" /> },
-      { label: 'Scope Versions', to: '/app/targets/tgt-1/scope/versions', icon: <History className="h-4 w-4" /> },
-      { label: 'New Assessment', to: '/app/assessments/new', icon: <PlayCircle className="h-4 w-4" /> },
-      { label: 'Assessment Runs', to: '/app/assessments', icon: <ListChecks className="h-4 w-4" /> },
-      { label: 'Run Monitoring', to: '/app/assessments/RUN-704/monitor', icon: <Activity className="h-4 w-4" /> },
-    ],
-  },
+function buildNavGroups({
+  projectId,
+  targetId,
+  runId,
+}: {
+  projectId?: string;
+  targetId?: string;
+  runId?: string;
+}): NavGroup[] {
+  return [
+    {
+      heading: 'Overview',
+      items: [{ label: 'Dashboard', to: '/app/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> }],
+    },
+    {
+      heading: 'Workspace',
+      items: [
+        { label: 'Projects', to: '/app/projects', icon: <FolderKanban className="h-4 w-4" /> },
+        {
+          label: 'Members & Roles',
+          to: projectId ? `/app/projects/${projectId}/members` : '/app/projects/members',
+          icon: <Users className="h-4 w-4" />,
+        },
+      ],
+    },
+    {
+      heading: 'Targets',
+      items: [
+        { label: 'Targets', to: '/app/targets', icon: <Target className="h-4 w-4" /> },
+        { label: 'Add Target', to: '/app/targets/new', icon: <PlusCircle className="h-4 w-4" /> },
+        {
+          label: 'Authorization History',
+          to: targetId ? `/app/targets/${targetId}/authorization` : '/app/targets/authorization',
+          icon: <ShieldCheck className="h-4 w-4" />,
+        },
+      ],
+    },
+    {
+      heading: 'Assessments',
+      items: [
+        {
+          label: 'Scope Configuration',
+          to: targetId ? `/app/targets/${targetId}/scope` : '/app/targets/scope',
+          icon: <Shield className="h-4 w-4" />,
+        },
+        {
+          label: 'Scope Versions',
+          to: targetId ? `/app/targets/${targetId}/scope/versions` : '/app/targets/scope/versions',
+          icon: <History className="h-4 w-4" />,
+        },
+        { label: 'New Assessment', to: '/app/assessments/new', icon: <PlayCircle className="h-4 w-4" /> },
+        { label: 'Assessment Runs', to: '/app/assessments', icon: <ListChecks className="h-4 w-4" /> },
+        {
+          label: 'Run Monitoring',
+          to: runId ? `/app/assessments/${runId}/monitor` : '/app/assessments/monitor',
+          icon: <Activity className="h-4 w-4" />,
+        },
+      ],
+    },
   {
     heading: 'Discovery',
     items: [{ label: 'URL Inventory', to: '/app/inventory/urls', icon: <Compass className="h-4 w-4" /> }],
@@ -109,7 +139,7 @@ const NAV_GROUPS: NavGroup[] = [
     heading: 'Results',
     items: [
       { label: 'Findings', to: '/app/findings', icon: <ShieldAlert className="h-4 w-4" />, badge: 'Sem 8' },
-      { label: 'Evidence', to: '/app/evidence/ev-1', icon: <FileText className="h-4 w-4" />, badge: 'Sem 8' },
+      { label: 'Evidence', to: '/app/evidence', icon: <FileText className="h-4 w-4" />, badge: 'Sem 8' },
       { label: 'Reports', to: '/app/reports', icon: <FileText className="h-4 w-4" />, badge: 'Sem 8' },
     ],
   },
@@ -128,6 +158,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [{ label: 'Profile & Settings', to: '/app/settings', icon: <Settings className="h-4 w-4" /> }],
   },
 ];
+}
 
 export function Breadcrumbs({ items }: { items: { label: string; to?: string }[] }) {
   return (
@@ -181,13 +212,50 @@ export function AppShell() {
   const [quickJump, setQuickJump] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
+  const mainRef = useRef<HTMLElement>(null);
+
+  const projectsQ = useQuery({
+    queryKey: ['projects', activeWorkspaceId],
+    queryFn: () => apiClient.getProjects(activeWorkspaceId),
+    enabled: Boolean(user),
+  });
+  const targetsQ = useQuery({
+    queryKey: ['targets'],
+    queryFn: () => apiClient.getTargets(),
+    enabled: Boolean(user),
+  });
+  const runsQ = useQuery({
+    queryKey: ['runs'],
+    queryFn: () => apiClient.getRuns(),
+    enabled: Boolean(user),
+  });
+
+  const resolvedProjectId = params.projectId ?? projectsQ.data?.[0]?.id;
+  const resolvedTargetId = params.targetId ?? targetsQ.data?.[0]?.id;
+  const resolvedRunId = params.runId ?? runsQ.data?.[0]?.id;
+
+  const navGroups = useMemo(
+    () =>
+      buildNavGroups({
+        projectId: resolvedProjectId,
+        targetId: resolvedTargetId,
+        runId: resolvedRunId,
+      }),
+    [resolvedProjectId, resolvedTargetId, resolvedRunId],
+  );
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, left: 0 });
+    window.scrollTo({ top: 0, left: 0 });
+  }, [location.pathname, location.search]);
 
   const handleQuickJump = (e: React.FormEvent) => {
     e.preventDefault();
     const q = quickJump.trim().toLowerCase();
     if (!q) return;
     if (q.includes('target')) navigate('/app/targets');
-    else if (q.includes('scope')) navigate('/app/targets/tgt-1/scope');
+    else if (q.includes('scope')) navigate(resolvedTargetId ? `/app/targets/${resolvedTargetId}/scope` : '/app/targets/scope');
     else if (q.includes('run') || q.includes('assess')) navigate('/app/assessments');
     else if (q.includes('url') || q.includes('inv')) navigate('/app/inventory/urls');
     else if (q.includes('find')) navigate('/app/findings');
@@ -199,7 +267,7 @@ export function AppShell() {
 
   const renderNavLinks = (onSelect?: () => void) => (
     <div className="space-y-5 px-3 py-4">
-      {NAV_GROUPS.map((group) => (
+      {navGroups.map((group) => (
         <div key={group.heading}>
           {!sidebarCollapsed && (
             <div className="px-2.5 pb-1.5 text-[11px] font-semibold tracking-wider text-slate-500">
@@ -210,7 +278,7 @@ export function AppShell() {
             {group.items.map((item) => {
               const isExactMatch = location.pathname === item.to;
               return (
-                <li key={item.to}>
+                <li key={item.label}>
                   <NavLink
                     to={item.to}
                     end
@@ -242,9 +310,9 @@ export function AppShell() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100">
       {/* Top Application Bar */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 sm:gap-4 border-b border-slate-800 bg-slate-950/95 px-3 sm:px-4 backdrop-blur-xs">
+      <header className="shrink-0 z-30 flex h-14 items-center justify-between gap-2 sm:gap-4 border-b border-slate-800 bg-slate-950/95 px-3 sm:px-4 backdrop-blur-xs">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <button
             type="button"
@@ -376,7 +444,7 @@ export function AppShell() {
         )}
 
         {/* Main Content Viewport */}
-        <main className="flex-1 min-w-0 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-6">
             <Outlet />
           </div>

@@ -1,0 +1,113 @@
+====================================================================
+CINESTREAM LIVE TESTING DATA (https://cine-stream-proj.vercel.app/)
+====================================================================
+Use these values step-by-step in your Live Account UI.
+
+--------------------------------------------------------------------
+1. CREATE PROJECT (Workspace -> Projects -> Create Project)
+--------------------------------------------------------------------
+Project Name:
+  CineStream Movie API
+
+Environment Context:
+  staging
+
+Description:
+  Bounded API and URL discovery security assessment for CineStream deployed on Vercel.
+
+--------------------------------------------------------------------
+2. ADD TARGET (Targets -> Add Target)
+--------------------------------------------------------------------
+Project Association:
+  CineStream Movie API
+
+Display Name:
+  CineStream Vercel App
+
+Base URL:
+  https://cine-stream-proj.vercel.app
+
+Environment Classification:
+  Staging (Authorized Non-Production)   [value: staging]
+
+Target Description:
+  Movie streaming web app and API deployed on Vercel for bounded read-only discovery.
+
+Ownership Declaration:
+  I am the developer and owner of https://cine-stream-proj.vercel.app and authorize bounded read-only testing.
+
+Written Permission Reference:
+  CINESTREAM-AUTH-2026-01
+
+--------------------------------------------------------------------
+3. TARGET AUTHORIZATION (Targets -> Authorization History)
+--------------------------------------------------------------------
+Action:
+  Click "Approve" (Project Owner)
+
+State:
+  authorized
+
+Notes:
+  Approved for bounded passive URL discovery on CineStream Vercel staging deployment.
+
+--------------------------------------------------------------------
+4. SCOPE CONFIGURATION (Assessments -> Scope Configuration)
+--------------------------------------------------------------------
+[1. Target Boundary]
+  Allowed Hosts (comma-separated):
+    cine-stream-proj.vercel.app
+
+  Allowed Ports:
+    443
+
+  Allowed Path Prefixes:
+    /, /api
+
+[2. Exclusions & Redirect Policy]
+  Excluded Paths / Patterns:
+    /api/auth/logout, /admin
+
+  Follow Redirects In Scope Only:
+    Checked (true)
+
+[3. Allowed HTTP Methods]
+  Selected Methods:
+    GET, HEAD, OPTIONS
+
+  State-Changing Methods Enabled:
+    Unchecked (false)
+
+[4. Network Policy]
+  Block Private & Link-Local:
+    Checked (true)
+
+  Local Lab Exception Active:
+    Unchecked (false)   <-- Public HTTPS staging target ke liye unchecked rakhein
+
+[5. Budgets]
+  Max Crawl Depth:          3
+  Max Requests:           400
+  Per-Host Rate RPS:        2
+  Concurrency:              2
+  Max Wall Clock Seconds:   240
+
+[Change Summary]
+  Initial approved scope v1 for CineStream Vercel deployment (HTTPS port 443).
+
+Action:
+  1. Click "Save Scope Version"
+  2. Click "Approve v1"
+
+--------------------------------------------------------------------
+5. NEW ASSESSMENT (Assessments -> New Assessment)
+--------------------------------------------------------------------
+Registered Target:
+  CineStream Vercel App (https://cine-stream-proj.vercel.app) — Staging
+
+Assessment Modules:
+  [x] Bounded URL Discovery (Sem 7)
+
+Action:
+  Click "Submit Assessment Run" -> check Run Monitoring & URL Inventory.
+====================================================================

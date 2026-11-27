@@ -17,6 +17,14 @@ interface AppSessionContextValue {
   theme: 'dark' | 'light';
   toggleTheme: () => void;
   login: (email: string, password: string) => Promise<void>;
+  register: (payload: {
+    displayName: string;
+    email: string;
+    password: string;
+    role: SrsRole;
+    workspaceOption: 'create_new' | 'join_lab';
+    workspaceName?: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
   switchDemoRole: (role: SrsRole) => Promise<void>;
   simulateSessionExpired: () => Promise<void>;
@@ -43,7 +51,7 @@ const DEFAULT_CAPABILITIES: AuthCapabilities = {
 };
 
 function SessionInnerProvider({ children }: { children: React.ReactNode }) {
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('ws-fyp-main');
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
@@ -84,6 +92,22 @@ function SessionInnerProvider({ children }: { children: React.ReactNode }) {
     await queryClient.invalidateQueries();
   }, []);
 
+  const register = useCallback(
+    async (payload: {
+      displayName: string;
+      email: string;
+      password: string;
+      role: SrsRole;
+      workspaceOption: 'create_new' | 'join_lab';
+      workspaceName?: string;
+    }) => {
+      await apiClient.register(payload);
+      await apiClient.login(payload.email, payload.password);
+      await queryClient.invalidateQueries();
+    },
+    [],
+  );
+
   const logout = useCallback(async () => {
     await apiClient.logout();
     await queryClient.invalidateQueries({ queryKey: ['auth-session'] });
@@ -113,6 +137,7 @@ function SessionInnerProvider({ children }: { children: React.ReactNode }) {
     theme,
     toggleTheme,
     login,
+    register,
     logout,
     switchDemoRole,
     simulateSessionExpired,

@@ -204,6 +204,9 @@ def register_user(
     display_name: str,
     password: str,
     department: str | None,
+    role: str = "project_owner",
+    workspace_option: str = "create_new",
+    workspace_name: str | None = None,
     settings: Settings,
 ) -> User:
     if settings.registration_mode != "self_service":
@@ -237,28 +240,36 @@ def register_user(
         username=norm_username,
         display_name=display_name.strip(),
         password_hash=hash_password(password),
-        global_role="security_tester",
+        global_role=role,
         account_status="active",
         department=department,
     )
     db.add(user)
     db.flush()
 
-    ws = Workspace(
-        slug=f"ws-{norm_username}-{user.id[:8]}",
-        name=f"{display_name.strip()} Workspace",
-        description="Self-service Semester 7 academic workspace.",
-        semester_label="Semester 7",
-        owner_id=user.id,
-    )
-    db.add(ws)
-    db.flush()
+    ws: Workspace | None = None
+    if workspace_option == "join_lab":
+        ws = db.scalar(
+            select(Workspace).where(Workspace.name == "FYP Security Assessment Lab")
+        )
+
+    if ws is None:
+        resolved_ws_name = (workspace_name or "").strip() or f"{display_name.strip()} Workspace"
+        ws = Workspace(
+            slug=f"ws-{norm_username}-{user.id[:8]}",
+            name=resolved_ws_name,
+            description="Self-service Semester 7 academic workspace.",
+            semester_label="Semester 7",
+            owner_id=user.id,
+        )
+        db.add(ws)
+        db.flush()
 
     db.add(
         WorkspaceMember(
             workspace_id=ws.id,
             user_id=user.id,
-            role="project_owner",
+            role=role,
             status="active",
             granted_by_id=user.id,
         )

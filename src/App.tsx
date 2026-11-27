@@ -1,18 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppProviders, useAppSession } from '@/src/app/providers';
+import { ComingSoonPage } from '@/src/components/feedback/ComingSoonPage';
+import { EmptyResourcePage } from '@/src/components/feedback/EmptyResourcePage';
 import { LoadingSkeleton } from '@/src/components/feedback/FeedbackStates';
 import { AppShell } from '@/src/components/layout/AppShell';
-import {
-  ContractDetailPage,
-  ContractsListPage,
-  ImportContractPage,
-} from '@/src/features/api-contracts/ContractsPages';
-import {
-  ApiOperationsPage,
-  ContractTestRunDetailPage,
-  ContractTestsListPage,
-} from '@/src/features/api-inventory/ApiOperationsPages';
 import {
   AssessmentRunMonitorPage,
   AssessmentRunsListPage,
@@ -25,24 +17,12 @@ import {
   NotFoundPage,
   RegisterPage,
 } from '@/src/features/auth/AuthPages';
-import { BehaviorGraphPage } from '@/src/features/behavior-graph/BehaviorGraphPage';
-import { BenchmarksPage } from '@/src/features/benchmarks/BenchmarksPages';
 import { DashboardPage } from '@/src/features/dashboard/DashboardPage';
-import { EvidenceDetailPage } from '@/src/features/evidence/EvidencePage';
-import { FindingDetailPage, FindingsListPage } from '@/src/features/findings/FindingsPages';
-import { TestIdentitiesPage } from '@/src/features/identities/TestIdentitiesPage';
-import {
-  CreateInvariantPage,
-  InvariantDetailPage,
-  InvariantRunsPage,
-  InvariantsListPage,
-} from '@/src/features/invariants/InvariantsPages';
 import {
   CreateProjectPage,
   ProjectDetailPage,
   ProjectsListPage,
 } from '@/src/features/projects/ProjectsPages';
-import { ReportDetailPage, ReportsListPage } from '@/src/features/reports/ReportsPages';
 import { ScopeConfigPage, ScopeVersionsPage } from '@/src/features/scope/ScopePages';
 import { SettingsPage } from '@/src/features/settings/SettingsPage';
 import {
@@ -52,7 +32,6 @@ import {
   TargetsListPage,
 } from '@/src/features/targets/TargetsPages';
 import { UrlDetailPage, UrlInventoryPage } from '@/src/features/url-inventory/UrlInventoryPages';
-import { ZapResultsPage } from '@/src/features/web-security/ZapResultsPage';
 
 function ProtectedWorkspaceGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAppSession();
@@ -104,12 +83,68 @@ function AppRoutes() {
         {/* Projects */}
         <Route path="projects" element={<ProjectsListPage />} />
         <Route path="projects/new" element={<CreateProjectPage />} />
+        <Route
+          path="projects/members"
+          element={
+            <EmptyResourcePage
+              breadcrumbs={[{ label: 'Projects', to: '/app/projects' }, { label: 'Members & Roles' }]}
+              title="Members & Roles"
+              description="Manage project team members and role-based permissions."
+              emptyTitle="No project created yet"
+              emptyDescription="Create a project first to manage its members and roles."
+              actionLabel="Create Project"
+              actionTo="/app/projects/new"
+            />
+          }
+        />
         <Route path="projects/:projectId" element={<ProjectDetailPage />} />
         <Route path="projects/:projectId/members" element={<ProjectDetailPage initialTab="members" />} />
 
         {/* Targets & Scope */}
         <Route path="targets" element={<TargetsListPage />} />
         <Route path="targets/new" element={<CreateTargetPage />} />
+        <Route
+          path="targets/authorization"
+          element={
+            <EmptyResourcePage
+              breadcrumbs={[{ label: 'Targets', to: '/app/targets' }, { label: 'Authorization History' }]}
+              title="Authorization History"
+              description="Review target ownership declarations and approval decisions."
+              emptyTitle="No target registered yet"
+              emptyDescription="Register a target first to declare and approve its authorization."
+              actionLabel="Add Target"
+              actionTo="/app/targets/new"
+            />
+          }
+        />
+        <Route
+          path="targets/scope"
+          element={
+            <EmptyResourcePage
+              breadcrumbs={[{ label: 'Targets', to: '/app/targets' }, { label: 'Scope Configuration' }]}
+              title="Scope Configuration"
+              description="Define target host boundaries, exclusions, allowed HTTP methods, and execution budgets."
+              emptyTitle="No target registered yet"
+              emptyDescription="Register a target first before configuring its scope."
+              actionLabel="Add Target"
+              actionTo="/app/targets/new"
+            />
+          }
+        />
+        <Route
+          path="targets/scope/versions"
+          element={
+            <EmptyResourcePage
+              breadcrumbs={[{ label: 'Targets', to: '/app/targets' }, { label: 'Scope Versions' }]}
+              title="Scope Versions"
+              description="Inspect immutable scope versions and approval history."
+              emptyTitle="No target registered yet"
+              emptyDescription="Register a target first to view its scope version history."
+              actionLabel="Add Target"
+              actionTo="/app/targets/new"
+            />
+          }
+        />
         <Route path="targets/:targetId" element={<TargetDetailPage />} />
         <Route path="targets/:targetId/authorization" element={<TargetAuthorizationPage />} />
         <Route path="targets/:targetId/scope" element={<ScopeConfigPage />} />
@@ -118,6 +153,20 @@ function AppRoutes() {
         {/* Assessments & Runs */}
         <Route path="assessments" element={<AssessmentRunsListPage />} />
         <Route path="assessments/new" element={<AssessmentWizardPage />} />
+        <Route
+          path="assessments/monitor"
+          element={
+            <EmptyResourcePage
+              breadcrumbs={[{ label: 'Assessments', to: '/app/assessments' }, { label: 'Run Monitoring' }]}
+              title="Run Monitoring"
+              description="Track live execution stages, request budgets, and worker progress."
+              emptyTitle="No assessment run started yet"
+              emptyDescription="Launch an assessment run first to monitor its execution."
+              actionLabel="New Assessment"
+              actionTo="/app/assessments/new"
+            />
+          }
+        />
         <Route path="assessments/:runId" element={<AssessmentRunMonitorPage />} />
         <Route path="assessments/:runId/monitor" element={<AssessmentRunMonitorPage />} />
 
@@ -126,35 +175,35 @@ function AppRoutes() {
         <Route path="inventory/urls/:urlId" element={<UrlDetailPage />} />
 
         {/* Semester 8: Web Security */}
-        <Route path="security/url-findings" element={<ZapResultsPage />} />
+        <Route path="security/url-findings" element={<ComingSoonPage title="URL Security Results" />} />
 
         {/* Semester 8: OpenAPI Contracts & Testing */}
-        <Route path="contracts" element={<ContractsListPage />} />
-        <Route path="contracts/import" element={<ImportContractPage />} />
-        <Route path="contracts/:contractId" element={<ContractDetailPage />} />
-        <Route path="api-operations" element={<ApiOperationsPage />} />
-        <Route path="api-tests" element={<ContractTestsListPage />} />
-        <Route path="api-tests/:runId" element={<ContractTestRunDetailPage />} />
+        <Route path="contracts" element={<ComingSoonPage title="OpenAPI Contracts" />} />
+        <Route path="contracts/import" element={<ComingSoonPage title="Import Contract" />} />
+        <Route path="contracts/:contractId" element={<ComingSoonPage title="OpenAPI Contracts" />} />
+        <Route path="api-operations" element={<ComingSoonPage title="API Operations" />} />
+        <Route path="api-tests" element={<ComingSoonPage title="Contract Testing" />} />
+        <Route path="api-tests/:runId" element={<ComingSoonPage title="Contract Testing" />} />
 
         {/* Semester 8: Behavior Graph */}
-        <Route path="behavior-graph" element={<BehaviorGraphPage />} />
+        <Route path="behavior-graph" element={<ComingSoonPage title="Dependency Graph" />} />
 
         {/* Semester 8: Identities & Business Invariants */}
-        <Route path="identities" element={<TestIdentitiesPage />} />
-        <Route path="invariants" element={<InvariantsListPage />} />
-        <Route path="invariants/new" element={<CreateInvariantPage />} />
-        <Route path="invariants/:invariantId" element={<InvariantDetailPage />} />
-        <Route path="invariant-runs" element={<InvariantRunsPage />} />
+        <Route path="identities" element={<ComingSoonPage title="Test Identities" />} />
+        <Route path="invariants" element={<ComingSoonPage title="Invariants" />} />
+        <Route path="invariants/new" element={<ComingSoonPage title="Invariants" />} />
+        <Route path="invariants/:invariantId" element={<ComingSoonPage title="Invariants" />} />
+        <Route path="invariant-runs" element={<ComingSoonPage title="Invariant Runs" />} />
 
         {/* Semester 8: Findings, Evidence, Reports, Benchmarks */}
-        <Route path="findings" element={<FindingsListPage />} />
-        <Route path="findings/:findingId" element={<FindingDetailPage />} />
-        <Route path="evidence" element={<EvidenceDetailPage />} />
-        <Route path="evidence/:evidenceId" element={<EvidenceDetailPage />} />
-        <Route path="reports" element={<ReportsListPage />} />
-        <Route path="reports/:reportId" element={<ReportDetailPage />} />
-        <Route path="benchmarks" element={<BenchmarksPage />} />
-        <Route path="benchmarks/:benchmarkId" element={<BenchmarksPage />} />
+        <Route path="findings" element={<ComingSoonPage title="Findings" />} />
+        <Route path="findings/:findingId" element={<ComingSoonPage title="Findings" />} />
+        <Route path="evidence" element={<ComingSoonPage title="Evidence" />} />
+        <Route path="evidence/:evidenceId" element={<ComingSoonPage title="Evidence" />} />
+        <Route path="reports" element={<ComingSoonPage title="Reports" />} />
+        <Route path="reports/:reportId" element={<ComingSoonPage title="Reports" />} />
+        <Route path="benchmarks" element={<ComingSoonPage title="Benchmarks & Eval" />} />
+        <Route path="benchmarks/:benchmarkId" element={<ComingSoonPage title="Benchmarks & Eval" />} />
 
         {/* Governance & Settings */}
         <Route path="audit" element={<AuditHistoryPage />} />

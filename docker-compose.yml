@@ -12,20 +12,20 @@ services:
     networks:
       - abm_internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U abm_user -d abm_sem7"]
+      test: [ "CMD-SHELL", "pg_isready -U abm_user -d abm_sem7" ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7.2.4-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command: [ "redis-server", "--appendonly", "yes" ]
     ports:
       - "127.0.0.1:6379:6379"
     networks:
       - abm_internal
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -39,7 +39,7 @@ services:
     networks:
       - abm_internal
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api')"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api')" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -66,7 +66,7 @@ services:
     command: >
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -91,7 +91,7 @@ services:
     networks:
       - abm_internal
     stop_grace_period: 35s
-    command: ["python", "-m", "app.queue.worker"]
+    command: [ "python", "-m", "app.queue.worker" ]
 
 networks:
   abm_internal:

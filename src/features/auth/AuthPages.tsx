@@ -159,8 +159,8 @@ export function LoginPage() {
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
             {capabilities.registrationMode !== 'disabled' && (
-              <Link to="/register" className="text-teal-400 hover:text-teal-300">
-                Registration ({capabilities.registrationMode.replace('_', ' ')})
+              <Link to="/register" className="font-medium text-teal-400 hover:text-teal-300">
+                New user? Create Account (Sign Up)
               </Link>
             )}
             {capabilities.passwordRecoveryEnabled ? (
@@ -180,24 +180,240 @@ export function LoginPage() {
   );
 }
 
+const SRS_ROLE_OPTIONS = [
+  {
+    value: 'project_owner',
+    label: 'Project Owner',
+    hint: 'Can register targets, approve target authorizations, and approve scope versions.',
+  },
+  {
+    value: 'security_tester',
+    label: 'Security Tester',
+    hint: 'Can configure scopes, launch bounded assessments, and inspect discovered URLs.',
+  },
+  {
+    value: 'supervisor_evaluator',
+    label: 'Supervisor / Evaluator',
+    hint: 'Read-only access to review targets, scope approvals, assessment runs, and audit logs.',
+  },
+  {
+    value: 'system_admin',
+    label: 'System Admin',
+    hint: 'Administrative oversight across workspace governance and audit history.',
+  },
+] as const;
+
 export function RegisterPage() {
-  const { capabilities } = useAppSession();
+  const { user, register, capabilities } = useAppSession();
+  const navigate = useNavigate();
+
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [workspaceOption, setWorkspaceOption] = useState<'create_new' | 'join_lab'>('create_new');
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [role, setRole] = useState<string>('project_owner');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  if (user) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  const selectedRoleInfo = SRS_ROLE_OPTIONS.find((r) => r.value === role) ?? SRS_ROLE_OPTIONS[0];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+    const errs: Record<string, string> = {};
+    if (displayName.trim().length < 2) errs.displayName = 'Display name must be at least 2 characters.';
+    if (!email.trim().includes('@')) errs.email = 'Enter a valid email address.';
+    if (password.length < 10) errs.password = 'Password must be at least 10 characters.';
+    if (workspaceOption === 'create_new' && workspaceName.trim().length < 2) {
+      errs.workspaceName = 'Enter a workspace name (at least 2 characters).';
+    }
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      return;
+    }
+
+    setFieldErrors({});
+    setSubmitting(true);
+    try {
+      await register({
+        displayName: displayName.trim(),
+        email: email.trim(),
+        password,
+        role,
+        workspaceOption,
+        workspaceName: workspaceOption === 'create_new' ? workspaceName.trim() : undefined,
+      });
+      navigate('/app/dashboard');
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Unable to create account. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-12 text-slate-100">
-      <Panel className="w-full max-w-md p-6 space-y-4">
-        <h1 className="font-display text-xl font-semibold text-slate-100">Workspace Registration</h1>
-        <p className="text-xs text-slate-400">
-          Configured SRS registration mode: <span className="font-mono text-slate-200">{capabilities.registrationMode}</span>.
-        </p>
-        <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3.5 text-xs text-slate-300">
-          {capabilities.registrationMode === 'invite_only'
-            ? 'Self-registration is disabled in invite-only mode. Request a workspace invitation from your Project Owner or FYP Supervisor.'
-            : 'Registration requires backend identity-service verification, which is unavailable in the frontend-only workspace.'}
+      <div className="w-full max-w-md space-y-6">
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-teal-700/50 bg-teal-950/50 text-teal-400">
+            <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-100">
+            Create Workspace Account
+          </h1>
+          <p className="text-xs text-slate-400 max-w-sm">
+            Register your account with a workspace and SRS role. You can sign in anytime using this email and password.
+          </p>
+          {isDemoMode && (
+            <div className="pt-1">
+              <DemoBanner />
+            </div>
+          )}
         </div>
-        <Link to="/login" className="inline-block text-xs font-medium text-teal-400 hover:text-teal-300">
-          Return to Sign In
-        </Link>
-      </Panel>
+
+        <Panel className="p-6">
+          {capabilities.registrationMode === 'disabled' ? (
+            <div className="space-y-4">
+              <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3.5 text-xs text-slate-300">
+                Registration is currently disabled by the administrator.
+              </div>
+              <Link to="/login" className="inline-block text-xs font-medium text-teal-400 hover:text-teal-300">
+                Return to Sign In
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {submitError && (
+                <div
+                  role="alert"
+                  className="rounded-md border border-red-800/60 bg-red-950/40 px-3 py-2 text-xs text-red-300"
+                >
+                  {submitError}
+                </div>
+              )}
+
+              <FormField id="reg-name" label="Display Name" required error={fieldErrors.displayName}>
+                <input
+                  id="reg-name"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  disabled={submitting}
+                  placeholder="e.g., Amina Farooq"
+                  className={inputClassName}
+                />
+              </FormField>
+
+              <FormField id="reg-email" label="Email" required error={fieldErrors.email}>
+                <input
+                  id="reg-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={submitting}
+                  placeholder="name@fyp-lab.edu"
+                  className={inputClassName}
+                />
+              </FormField>
+
+              <FormField
+                id="reg-password"
+                label="Password"
+                required
+                error={fieldErrors.password}
+                hint="Minimum 10 characters."
+              >
+                <div className="relative">
+                  <input
+                    id="reg-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={submitting}
+                    className={`${inputClassName} pr-10`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-200"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </FormField>
+
+              <FormField id="reg-ws-option" label="Workspace" required>
+                <select
+                  id="reg-ws-option"
+                  value={workspaceOption}
+                  onChange={(e) => setWorkspaceOption(e.target.value as 'create_new' | 'join_lab')}
+                  disabled={submitting}
+                  className={inputClassName}
+                >
+                  <option value="create_new">Create New Workspace</option>
+                  <option value="join_lab">FYP Security Assessment Lab (Existing Workspace)</option>
+                </select>
+              </FormField>
+
+              {workspaceOption === 'create_new' && (
+                <FormField id="reg-ws-name" label="New Workspace Name" required error={fieldErrors.workspaceName}>
+                  <input
+                    id="reg-ws-name"
+                    type="text"
+                    value={workspaceName}
+                    onChange={(e) => setWorkspaceName(e.target.value)}
+                    disabled={submitting}
+                    placeholder="e.g., CineStream Security Lab"
+                    className={inputClassName}
+                  />
+                </FormField>
+              )}
+
+              <FormField
+                id="reg-role"
+                label="Assigned SRS Role"
+                required
+                hint={selectedRoleInfo.hint}
+              >
+                <select
+                  id="reg-role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  disabled={submitting}
+                  className={inputClassName}
+                >
+                  {SRS_ROLE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              <Button type="submit" variant="primary" className="w-full" disabled={submitting}>
+                {submitting ? 'Creating Account...' : 'Sign Up & Enter Workspace'}
+              </Button>
+
+              <div className="pt-2 text-center text-xs text-slate-400">
+                Already have an account?{' '}
+                <Link to="/login" className="font-medium text-teal-400 hover:text-teal-300">
+                  Sign In
+                </Link>
+              </div>
+            </form>
+          )}
+        </Panel>
+      </div>
     </div>
   );
 }

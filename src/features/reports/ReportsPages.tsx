@@ -25,7 +25,7 @@ export function ReportsListPage() {
   });
   const runsQ = useQuery({ queryKey: ['runs'], queryFn: () => apiClient.getRuns() });
 
-  const [selectedRunId, setSelectedRunId] = useState('RUN-703');
+  const [selectedRunId, setSelectedRunId] = useState('');
   const [format, setFormat] = useState<ReportFormat>('html');
   const effectiveRunId =
     (runsQ.data ?? []).some((r) => r.id === selectedRunId) ? selectedRunId : (runsQ.data?.[0]?.id ?? '');

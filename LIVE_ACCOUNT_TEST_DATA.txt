@@ -1,0 +1,135 @@
+====================================================================
+API BEHAVIOR MINER - COMPLETE LIVE DATA (PORT 9000 / 127.0.0.1)
+====================================================================
+All fields below match the exact frontend forms and backend Pydantic
+validation rules. Use them in order from Project -> Target ->
+Authorization -> Scope Configuration -> New Assessment.
+
+--------------------------------------------------------------------
+1. CREATE PROJECT (Workspace -> Projects -> Create Project)
+--------------------------------------------------------------------
+Authorized Workspace:
+  (Select your default workspace from dropdown)
+
+Project Name (3-80 chars):
+  Campus Orders Lab
+
+Environment Context:
+  local_lab
+
+Description (10-400 chars):
+  Bounded API security assessment and URL discovery lab for local service on port 9000.
+
+--------------------------------------------------------------------
+2. REGISTER TARGET (Targets -> Add Target)
+--------------------------------------------------------------------
+Project Association:
+  Campus Orders Lab
+
+Display Name (3-80 chars):
+  Orders Sandbox API
+
+Base URL:
+  http://127.0.0.1:9000
+
+Environment Classification:
+  Local Lab (Isolated Loopback / Docker)   [value: local_lab]
+
+Target Description (5-300 chars):
+  Local sandbox REST API running on 127.0.0.1:9000 for bounded read-only discovery.
+
+Ownership Declaration (min 10 chars):
+  Owned by FYP Team; isolated local lab instance on 127.0.0.1:9000 authorized for testing.
+
+Written Permission Reference (min 4 chars):
+  FYP-AUTH-2026-09
+
+--------------------------------------------------------------------
+3. TARGET AUTHORIZATION (Targets -> Authorization History)
+--------------------------------------------------------------------
+Action:
+  Click "Approve" (Project Owner)
+
+State:
+  authorized
+
+Notes:
+  Approved for bounded passive URL discovery on local sandbox 127.0.0.1:9000.
+
+--------------------------------------------------------------------
+4. SCOPE CONFIGURATION (Assessments -> Scope Configuration)
+--------------------------------------------------------------------
+[1. Target Boundary]
+  Allowed Hosts (comma-separated):
+    127.0.0.1
+
+  Allowed Ports:
+    9000
+
+  Allowed Path Prefixes:
+    /api, /v1
+
+[2. Exclusions & Redirect Policy]
+  Excluded Paths / Patterns:
+    /api/admin, /api/internal/reset, /logout
+
+  Follow Redirects In Scope Only:
+    Checked (true)
+
+[3. Allowed HTTP Methods]
+  Selected Methods:
+    GET, HEAD, OPTIONS
+
+  State-Changing Methods Enabled:
+    Unchecked (false)
+
+[4. Network & SSRF Policy]
+  Block Private & Link-Local:
+    Checked (true)
+
+  Local Lab Exception Active:
+    Checked (true)  <-- Required for 127.0.0.1 / localhost
+
+[5. Execution Budgets]
+  Max Crawl Depth (1 - 8):          3
+  Max Requests (1 - 5000):          400
+  Per-Host Rate RPS (0.5 - 20):     2
+  Concurrency (1 - 10):             2
+  Max Wall Clock Seconds (10-3600): 240
+
+[Change Summary]
+  Initial scope v1 for Orders Sandbox API (127.0.0.1:9000) with read-only methods.
+
+Action:
+  1. Click "Save Scope Version"
+  2. Click "Approve v1" (Project Owner)
+
+--------------------------------------------------------------------
+5. NEW ASSESSMENT (Assessments -> New Assessment)
+--------------------------------------------------------------------
+1. Select Target:
+     Orders Sandbox API (http://127.0.0.1:9000) — Local Lab
+
+2. Select Assessment Modules:
+     [x] Bounded URL Discovery (Sem 7)
+
+3. Approved Scope Snapshot & Budgets:
+     Verify Scope v1 is Approved
+
+4. Authoritative Backend Preflight:
+     Click "Submit Assessment Run"
+
+--------------------------------------------------------------------
+6. ASSESSMENT RUN MONITORING & URL INVENTORY
+--------------------------------------------------------------------
+- Assessments -> Run Monitoring:
+    Live run status, progress, and stage logs will appear here.
+- Discovery -> URL Inventory:
+    Discovered endpoints under /api and /v1 will appear here.
+
+Note: If you want an actual live target inside Docker that responds
+to real HTTP crawl requests during an Assessment Run, use:
+  Base URL:      http://fixture:8080
+  Allowed Hosts: fixture
+  Allowed Ports: 8080
+====================================================================

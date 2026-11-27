@@ -143,6 +143,9 @@ def register(
         display_name=payload.display_name,
         password=payload.password,
         department=payload.department,
+        role=payload.role,
+        workspace_option=payload.workspace_option,
+        workspace_name=payload.workspace_name,
         settings=settings,
     )
     workspaces = list_user_workspaces(db, user)

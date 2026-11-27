@@ -99,6 +99,20 @@ export const httpAdapter: typeof mockAdapter = {
     return { user: data.user, capabilities: data.capabilities, workspaces: data.workspaces };
   },
 
+  async register(payload: {
+    displayName: string;
+    email: string;
+    password: string;
+    role: SrsRole;
+    workspaceOption: 'create_new' | 'join_lab';
+    workspaceName?: string;
+  }): Promise<UserProfile> {
+    return apiFetch<UserProfile>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
   async switchDemoRole(_role: SrsRole): Promise<UserProfile | null> {
     const sess = await httpAdapter.getSession();
     return sess.user;

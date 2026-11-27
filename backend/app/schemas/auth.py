@@ -38,12 +38,19 @@ class LoginRequest(CamelModel):
     password: str = Field(..., min_length=1, max_length=256)
 
 
+SrsRoleLiteral = Literal["project_owner", "security_tester", "supervisor_evaluator", "system_admin"]
+WorkspaceOptionLiteral = Literal["create_new", "join_lab"]
+
+
 class RegisterRequest(CamelModel):
     email: EmailStr
     username: str | None = Field(default=None, min_length=3, max_length=64)
     display_name: str = Field(..., min_length=2, max_length=120)
     password: str = Field(..., min_length=8, max_length=256)
     department: str | None = Field(default=None, max_length=120)
+    role: SrsRoleLiteral = "project_owner"
+    workspace_option: WorkspaceOptionLiteral = "create_new"
+    workspace_name: str | None = Field(default=None, max_length=120)
 
 
 class AuthSessionOut(CamelModel):

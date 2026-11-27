@@ -1804,6 +1804,46 @@ export const mockAdapter = {
     return { user: state.currentUser, capabilities: state.capabilities, workspaces: state.workspaces };
   },
 
+  async register(payload: {
+    displayName: string;
+    email: string;
+    password: string;
+    role: SrsRole;
+    workspaceOption: 'create_new' | 'join_lab';
+    workspaceName?: string;
+  }): Promise<UserProfile> {
+    await delay(200);
+    const normalized = payload.email.trim().toLowerCase();
+    if (DEMO_USERS[normalized]) {
+      throw new Error('An account with this email already exists.');
+    }
+    let wsId = 'ws-fyp-main';
+    if (payload.workspaceOption === 'create_new') {
+      const wsName = (payload.workspaceName ?? '').trim() || `${payload.displayName.trim()} Workspace`;
+      wsId = `ws-${Date.now()}`;
+      state.workspaces = [
+        ...state.workspaces,
+        {
+          id: wsId,
+          name: wsName,
+          slug: wsName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          description: 'Self-service Semester 7 academic workspace.',
+          semesterLabel: 'Semester 7',
+          memberCount: 1,
+        },
+      ];
+    }
+    const newUser: UserProfile = {
+      id: `usr-${Date.now()}`,
+      email: normalized,
+      displayName: payload.displayName.trim(),
+      role: payload.role,
+      workspaceIds: [wsId],
+    };
+    DEMO_USERS[normalized] = newUser;
+    return newUser;
+  },
+
   async switchDemoRole(role: SrsRole) {
     await delay(80);
     const byRole = Object.values(DEMO_USERS).find((u) => u.role === role);

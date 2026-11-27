@@ -10,7 +10,7 @@ import { apiClient } from '@/src/lib/api-client';
 import { formatTimestamp } from '@/src/lib/formatters';
 
 export function EvidenceDetailPage() {
-  const { evidenceId = 'ev-1' } = useParams();
+  const { evidenceId = '' } = useParams();
   const listQ = useQuery({ queryKey: ['evidence-list'], queryFn: () => apiClient.getEvidenceList() });
   const detailQ = useQuery({
     queryKey: ['evidence', evidenceId],
