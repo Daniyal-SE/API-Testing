@@ -1,0 +1,7 @@
+# Redis + RQ Decisions & Trade-offs (`REDIS_RQ_DECISIONS.md`)
+
+1. **RQ `JSONSerializer` over default `pickle`:** `rq==3.0.0` supports `rq.serializers.JSONSerializer`. Using `JSONSerializer` prevents arbitrary code execution via untrusted Redis payloads and restricts job arguments to JSON primitives (`run_id`, `correlation_id`, `task_version`).
+2. **Dual Package Compatibility (`app/queue/` + `app/jobs/`):** Existing backend services and tests import `app.queue.connection`, `app.queue.tasks`, and `app.queue.worker`. New modular components live in `app/jobs/` and are wired into `app/queue/` so zero existing contracts break.
+3. **Cooperative Cancellation + `send_stop_job_command`:** Cancellation sets both a durable PostgreSQL state (`cancellation_requested`) and a Redis signal key (`abm:{env}:run:cancel:{run_id}`), plus Pub/Sub wake-up. If Redis Pub/Sub is unavailable, the crawler/worker polls the cancellation check at safe request boundaries.
+4. **No Blind Replay on Worker Crash:** Per SRS FR-RUN-006 / NFR-PERF-016, interrupted runs transition to `interrupted` (or `failed / Worker Unavailable` when zero workers are active for >60s per NFR-OPS-007) rather than auto-retrying potentially partial HTTP crawls.
+5. **Local Test Harness (`fakeredis`):** Live Redis daemon is unavailable on the local Windows host; automated tests use `fakeredis` (compatible with `redis==8.2.0` and `rq==3.0.0` `SimpleWorker`). Live Docker Compose Redis (`redis:7.2.4-alpine`) should be verified when Docker is available.

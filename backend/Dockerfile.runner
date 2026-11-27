@@ -1,0 +1,16 @@
+FROM python:3.12.8-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /runner
+
+# Non-root unprivileged identity; no DB/Redis/Docker-socket secrets inside runner image
+RUN groupadd -r runnergroup && useradd -r -g runnergroup -u 10001 runner
+
+RUN pip install --no-cache-dir --default-timeout=120 httpx==0.28.1 beautifulsoup4==4.15.0
+
+COPY app ./app
+
+USER runner
+ENTRYPOINT ["python", "-m", "app.runner.container"]

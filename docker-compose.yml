@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: postgres:16.2-alpine
+    environment:
+      POSTGRES_DB: abm_sem7
+      POSTGRES_USER: abm_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-abm_local_dev_pw_change_me}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata_sem7:/var/lib/postgresql/data
+    networks:
+      - abm_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abm_user -d abm_sem7"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.2.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - abm_internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  fixture:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.fixture
+    ports:
+      - "8080:8080"
+    networks:
+      - abm_internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://abm_user:${POSTGRES_PASSWORD:-abm_local_dev_pw_change_me}@postgres:5432/abm_sem7
+      REDIS_URL: redis://redis:6379/0
+      RUNNER_MODE: local_restricted
+    ports:
+      - "8000:8000"
+    networks:
+      - abm_internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://abm_user:${POSTGRES_PASSWORD:-abm_local_dev_pw_change_me}@postgres:5432/abm_sem7
+      REDIS_URL: redis://redis:6379/0
+      RUNNER_MODE: local_restricted
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      fixture:
+        condition: service_healthy
+    networks:
+      - abm_internal
+    stop_grace_period: 35s
+    command: ["python", "-m", "app.queue.worker"]
+
+networks:
+  abm_internal:
+    driver: bridge
+
+volumes:
+  pgdata_sem7:

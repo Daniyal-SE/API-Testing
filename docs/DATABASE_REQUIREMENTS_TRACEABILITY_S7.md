@@ -1,0 +1,10 @@
+# Semester 7 Database Requirements Traceability (`DATABASE_REQUIREMENTS_TRACEABILITY_S7.md`)
+
+| S7 Acceptance / Milestone | SRS / Prompt Requirement | Implemented DB Entities, Constraints & Migrations | Supporting Verification |
+|---|---|---|---|
+| **S7-AC-01** (Weeks 1–6) | PostgreSQL baseline, scope boundary, traceability | `docker-compose.yml` (`postgres:16.2-alpine`), `0001_semester7_baseline`, `0002_semester7_pg_integrity_and_indexes`, `docs/DATABASE_*` | `test_alembic_upgrade_and_downgrade_clean`, offline PG DDL generation |
+| **S7-AC-02** (Weeks 7–8) | Architecture, ERD, ownership, security controls | Composite FKs on `targets` and `assessment_runs`, `CHECK` constraints, `user_sessions` token hashing | `DATABASE_RELATIONSHIPS_AND_ERD_S7.md`, `test_database_integrity.py` |
+| **S7-AC-03** (Weeks 9–12) | Auth/session, workspace/project/target persistence, audit trail | `users`, `user_sessions`, `workspaces`, `workspace_members`, `projects`, `project_members`, `targets`, `audit_logs` | `test_auth_session_csrf_and_logout_lifecycle`, `test_cross_workspace_idor_isolation`, `test_database_integrity.py` |
+| **S7-AC-04** (Weeks 13–14) | Authorization lifecycle, immutable scope versions, run state, single-active-run | `authorization_records`, `scope_versions` (`UNIQUE(target_id, version_number)`), `assessment_runs` (`uq_assessment_runs_one_active_per_target`), `run_events` | `test_project_target_authz_scope_versioning_and_revalidation`, `test_authorization_scope_semester8_and_conflict_gates`, `test_database_integrity.py` |
+| **S7-AC-05** (Weeks 15–16) | Same-origin URL inventory, deduplication, provenance, form metadata | `url_inventory` (`UNIQUE(run_id, canonical_key)`), `discovery_sources` | `test_semester7_end_to_end_discovery_and_cancellation`, `test_database_integrity.py` |
+| **S7-AC-06** (Defense Demo) | Reproducible local init, migrations, synthetic seed, deferred S8 list | `alembic upgrade head`, `scripts/seed_demo.py`, `scripts/reset_demo.py`, `docs/SEMESTER_8_DEFERRED_SCOPE.md` | `test_alembic_upgrade_and_downgrade_clean`, `seed_database` in `conftest.py` |
